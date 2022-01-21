@@ -4,6 +4,11 @@ const { pool } = require('./dbConfig');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const flash = require('express-flash');
+const passport = require("passport");
+
+const initializePassport = require('./passportConfig');
+
+initializePassport(passport);
 
 const PORT = process.env.PORT || 4000;
 
@@ -15,6 +20,8 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
 }));
+app.use(passport.initialize);
+app.use(passport.session);
 app.use(flash());
 app.get('/', (req, res) => {
   res.render('index');
@@ -85,6 +92,12 @@ app.get('/users/logout', (req, res) => {
     console.log(req);
     res.render('login');
 });
+
+app.post('/users/login', passport.authenticate('local', {
+  successRedirect: '/users/dashboard',
+  failureRedirect: '/users/login',
+  failureFlash: true
+}));
 
 app.listen(PORT, ()=>{
   console.log(`Server on port ${PORT}`)
