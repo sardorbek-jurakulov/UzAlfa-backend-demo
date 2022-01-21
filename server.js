@@ -20,9 +20,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
 }));
-app.use(passport.initialize);
-app.use(passport.session);
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(flash());
+
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -36,7 +37,7 @@ app.get('/users/login', (req, res) => {
 });
 
 app.get('/users/dashboard', (req, res) => {
-  res.render('dashboard', { user: "Conor" });
+  res.render('dashboard', { user: req.user.name });
 });
 
 app.post('/users/register', async (req, res) => {

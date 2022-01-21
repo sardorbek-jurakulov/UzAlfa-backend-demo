@@ -6,13 +6,12 @@ function initialize (passport) {
   const authenticateUser = (email, password, done) => {
     pool.query(
       `SELECT * FROM users WHERE email = $1`, 
-      [],
+      [email],
       (err, results) => {
         if(err) {
           throw err;
         }
-        console.log(results.rows);
-
+        
         if(results.rows.length > 0) {
           const user = results.rows[0];
           bcrypt.compare(password, user.password, (err, isMatch) => {
@@ -40,12 +39,12 @@ function initialize (passport) {
       authenticateUser
     )
   );
-  passport.serializeuser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser((id, done) => {
     pool.query(
       `SELECT * FROM users WHERE id = $1`,
       [id],
-      (err, result) => {
+      (err, results) => {
         if(err) {
           throw err;
         }
