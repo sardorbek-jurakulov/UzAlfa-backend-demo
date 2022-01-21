@@ -15,11 +15,13 @@ const PORT = process.env.PORT || 4000;
 app.set('view engine', 'ejs');
 
 app.use(express.urlencoded({extended: false}));
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: false,
-}));
+app.use(
+  session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: false
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
@@ -28,15 +30,15 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/users/register', (req, res) => {
+app.get('/users/register', checkAuthenticated, (req, res) => {
   res.render('register');
 });
 
-app.get('/users/login', (req, res) => {
+app.get('/users/login', checkAuthenticated, (req, res) => {
   res.render('login');
 });
 
-app.get('/users/dashboard', (req, res) => {
+app.get('/users/dashboard', checkNotAuthenticated, (req, res) => {
   res.render('dashboard', { user: req.user.name });
 });
 
@@ -78,7 +80,6 @@ app.post('/users/register', async (req, res) => {
                 if (err) {
                   throw err;
                 }
-                console.log(results.rows);
                 req.flash('success_msg', "You are now registered. Please log in");
                 res.redirect('/users/login');
               }
@@ -90,8 +91,9 @@ app.post('/users/register', async (req, res) => {
 });
 
 app.get('/users/logout', (req, res) => {
-    console.log(req);
-    res.render('login');
+    req.logOut();
+    req.flash('success_msg', "You have logged out");
+    res.redirect('/users/login')
 });
 
 app.post('/users/login', passport.authenticate('local', {
@@ -99,6 +101,20 @@ app.post('/users/login', passport.authenticate('local', {
   failureRedirect: '/users/login',
   failureFlash: true
 }));
+
+function checkAuthenticated(req, res, next) {
+  if(req.isAuthenticated) {
+    return res.redirect('/users/dashboard')
+  }
+  next()
+}
+
+function checkNotAuthenticated(req, res, next) {
+  if(req.isAuthenticatd()) {
+    return next()
+  }
+  res.redirect('/users/login');
+}
 
 app.listen(PORT, ()=>{
   console.log(`Server on port ${PORT}`)
